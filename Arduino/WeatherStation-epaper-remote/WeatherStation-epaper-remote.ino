@@ -1,4 +1,4 @@
-#include <wifi_link_tool.h>
+#include "wifi_link_tool.h"
 
 #include "Wire.h"
 #include <EEPROM.h>
@@ -44,8 +44,9 @@ void setup() {
   pinMode(DIN, OUTPUT);
   pinMode(12, OUTPUT);
   pinMode(BATTERY_LEVEL_PIN, INPUT);
+  pinMode(5, INPUT_PULLUP);
+  
   SPIFFS.begin();
-
   Serial.println("");
   Serial.printf("初始IO完成 %dms\n", millis());
 
@@ -57,20 +58,39 @@ void setup() {
   EPD.SetFont(FONT12);         //选择字体(仅FONT12支持中文)，字体可用群文件工具生成上传至spiffs使用
 
   EPD.DrawUTF(52, 0, "启动中");
+  EPD.DrawUTF(78, 0, "如需重置则按下EN按键后");
+  EPD.DrawUTF(104, 0, "再按住AP按键2秒");
   EPD.EPD_Dis_Full((unsigned char *)EPD.EPDbuffer, 1); //将缓存中的图像传给屏幕控制芯片刷新屏幕
   EPD.ReadBusy_long();//等待屏幕刷新完成后才继续往下运行
   EPD.deepsleep();//睡眠 屏幕进入低功耗模式，屏幕用完后必须使用，否则图像会慢慢变色，唤醒可用Init函数
 
   Serial.printf("屏幕首刷完成 %dms\n", millis());
-
-  rstb = D1;
+  
+  rstb = 5;
+  if (digitalRead(rstb) == LOW)
+  {
+    EPD.EPD_Set_Model();    //设置屏幕类型
+    EPD.EPD_init_Full();         //全刷初始化，使用全刷波形
+    EPD.clearbuffer();           //清空缓存(全白)
+    EPD.fontscale = 2;           //字体缩放系数(支持1和2,对图片也有效，用完记得重新改成1)
+    EPD.SetFont(FONT12);         //选择字体(仅FONT12支持中文)，字体可用群文件工具生成上传至spiffs使用
+  
+    EPD.DrawUTF(52, 0, "按住AP按键2秒来重置天气站");
+    EPD.EPD_Dis_Full((unsigned char *)EPD.EPDbuffer, 1); //将缓存中的图像传给屏幕控制芯片刷新屏幕
+    EPD.ReadBusy_long();//等待屏幕刷新完成后才继续往下运行
+    EPD.deepsleep();//睡眠 屏幕进入低功耗模式，屏幕用完后必须使用，否则图像会慢慢变色，唤醒可用Init函数
+  
+    Serial.printf("重置提示刷新完成 %dms\n", millis());
+    blink(); 
+  }
+  
   /* 重置io */
-  //stateled = D4;
+  stateled = D4;
   Hostname = "NekoWeatherStation";
   /* 设备名称 允许中文名称 不建议太长 */
   wxscan = true;
   /* 是否被小程序发现设备 开启意味该设备具有后台 true开启 false关闭 */
-
+  //blink();
   load();
   /* 初始化WiFi link tool */
   Serial.println( "设置 UDP" );
@@ -90,7 +110,7 @@ void setup() {
     EPD.fontscale = 2;           //字体缩放系数(支持1和2,对图片也有效，用完记得重新改成1)
     EPD.SetFont(FONT12);         //选择字体(仅FONT12支持中文)，字体可用群文件工具生成上传至spiffs使用
   
-    EPD.DrawUTF(52, 0, "请连接 wifi_link_tool 并配置Wifi");
+    EPD.DrawUTF(52, 0, "请连接 NekoStation 并配置Wifi");
     EPD.EPD_Dis_Full((unsigned char *)EPD.EPDbuffer, 1); //将缓存中的图像传给屏幕控制芯片刷新屏幕
     EPD.ReadBusy_long();//等待屏幕刷新完成后才继续往下运行
     EPD.deepsleep();//睡眠 屏幕进入低功耗模式，屏幕用完后必须使用，否则图像会慢慢变色，唤醒可用Init函数
