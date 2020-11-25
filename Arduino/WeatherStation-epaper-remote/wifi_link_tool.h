@@ -4,61 +4,59 @@
 #include <EEPROM.h>
 #include <FS.h>
 #include <DNSServer.h>
-#include <ESP8266mDNS.h>
 void  ICACHE_RAM_ATTR blink();
 const char *AP_name = "NekoStation"; //修改后即不支持微信配网
 
 
 
 /////////////////////////////////////////////////////不建议修改部分//////////////////////////////////////////////////////////////////
-String Hostname = "ESP8266";     
-String url = Hostname + ".com";   
-int Signal_filtering = -200;  
+String Hostname = "neko";
+String url = Hostname + ".com";
+String Token = "1609PU8V1E60V29W36";
+int Signal_filtering = -200;
 const byte DNS_PORT = 53;
-String WiFi_State;   
-#define WiFi_State_Addr 0   
-bool wxscan=true;
-int rstb=0;
-int stateled=2;
+String WiFi_State;
+#define WiFi_State_Addr 0
+int rstb = 0;
+int stateled = 2;
 IPAddress apIP(6, 6, 6, 6);
 DNSServer dnsServer;
 ESP8266WebServer webServer(80);
-String responseHTML =" <html><head><title>正在跳转</title></head><body><script language='javascript'>document.location = '/'</script></body></html>";
+String responseHTML = " <html><head><title>正在跳转</title></head><body><script language='javascript'>document.location = '/'</script></body></html>";
 
 
 //心跳服务
 void pant()
 {
-   MDNS.update();
-   dnsServer.processNextRequest();
-   webServer.handleClient();
+  dnsServer.processNextRequest();
+  webServer.handleClient();
 }
 
 
 void torest()
 {
-    WiFi.disconnect(true);
-    delay(100);
-    EEPROM.write(WiFi_State_Addr, 0);
-    EEPROM.commit();
-    delay(300);
-    Serial.print("重置成功！正在重启。");
-    ESP.restart();
+  WiFi.disconnect(true);
+  delay(100);
+  EEPROM.write(WiFi_State_Addr, 0);
+  EEPROM.commit();
+  delay(300);
+  Serial.print("重置成功！正在重启。");
+  ESP.restart();
 }
 
 int link()
 {
-  int a=0;
-  if(WiFi_State=="1")
+  int a = 0;
+  if (WiFi_State == "1")
   {
-    a=1;
+    a = 1;
   }
-  return a; 
+  return a;
 }
 
 void wwwroot()
 {
-  
+
   if (WiFi_State == "1")
   {
     File file = SPIFFS.open("/index.html", "r");
@@ -76,15 +74,15 @@ void wwwroot()
 
 void wifiConfig()
 {
- 
+
   if (webServer.hasArg("ssid") && webServer.hasArg("password") && WiFi_State == "0")
   {
     int ssid_len = webServer.arg("ssid").length();
     int password_len = webServer.arg("password").length();
-  
+
     if ((ssid_len > 0) && (ssid_len < 33) && (password_len > 7) && (password_len < 65))
     {
-      
+
       String ssid_str = webServer.arg("ssid");
       String password_str = webServer.arg("password");
       const char *ssid = ssid_str.c_str();
@@ -93,20 +91,20 @@ void wifiConfig()
       Serial.println(ssid);
       Serial.print("Password: ");
       Serial.println(password);
-    
+
       WiFi.begin(ssid, password);
       Serial.print("Connenting");
-    
+
       unsigned long millis_time = millis();
       while ((WiFi.status() != WL_CONNECTED) && (millis() - millis_time < 8000))
       {
         delay(500);
         Serial.print(".");
       }
- 
+
       if (WiFi.status() == WL_CONNECTED)
       {
-       
+
         digitalWrite(stateled, HIGH);
         Serial.println("");
         Serial.println("Connected successfully!");
@@ -117,32 +115,32 @@ void wifiConfig()
         webServer.send(200, "text/plain", "1");
         delay(300);
         WiFi_State = "1";
-      
+
         EEPROM.write(WiFi_State_Addr, 1);
         EEPROM.commit();
         delay(50);
-    
+
         WiFi.softAPdisconnect();
         delay(1000);
         ESP.restart();
       }
       else
       {
-        
+
         Serial.println("Connenting failed!");
         webServer.send(200, "text/plain", "0");
       }
     }
     else
     {
-     
+
       Serial.println("Password format error");
       webServer.send(200, "text/plain", "Password format error");
     }
   }
   else
   {
-   
+
     Serial.println("Request parameter error");
     webServer.send(200, "text/plain", "Request parameter error");
   }
@@ -170,17 +168,17 @@ void wifiScan()
     req_json = "{\"req\":[";
     for (int i = 0; i < n; i++)
     {
-    if ((int)WiFi.RSSI(i) >= Signal_filtering)
-     //  if (1)
+      if ((int)WiFi.RSSI(i) >= Signal_filtering)
+        //  if (1)
       {
         m++;
-        String a="{\"ssid\":\"" + (String)WiFi.SSID(i) + "\"," + "\"encryptionType\":\"" + wifi_type(WiFi.encryptionType(i)) + "\"," + "\"rssi\":" + (int)WiFi.RSSI(i) + "},";
-        if(a.length()>15)
-        req_json += a;  
-        }
+        String a = "{\"ssid\":\"" + (String)WiFi.SSID(i) + "\"," + "\"encryptionType\":\"" + wifi_type(WiFi.encryptionType(i)) + "\"," + "\"rssi\":" + (int)WiFi.RSSI(i) + "},";
+        if (a.length() > 15)
+          req_json += a;
+      }
     }
     req_json.remove(req_json.length() - 1);
-  
+
     req_json += "]}";
     webServer.send(200, "text/json;charset=UTF-8", req_json);
     Serial.print("Found ");
@@ -191,22 +189,13 @@ void wifiScan()
   }
 }
 
-void opera() {
-  if(webServer.arg("opera") == "sb"){
-    
-  webServer.send(200, "text/plain", Hostname);
-    
-  }
-  
-}
-
 
 
 void blink() {
   Serial.println("Keep 2 seconds to reset!");
   bool res_state = true;
   unsigned int res_time = millis();
-  
+
   while (millis() - res_time < 2000)
   {
     ESP.wdtFeed();//喂狗
@@ -219,15 +208,15 @@ void blink() {
   }
   if (res_state == true)
   {
-     EEPROM.begin(4096);
-     EEPROM.write(WiFi_State_Addr, 0);
-     EEPROM.commit();
+    EEPROM.begin(4096);
+    EEPROM.write(WiFi_State_Addr, 0);
+    EEPROM.commit();
     if (WiFi.status() == WL_CONNECTED)
-     {
-     WiFi.disconnect(true);
-     }
+    {
+      WiFi.disconnect(true);
+    }
 
-   
+
     delay(300);
     Serial.println("Press the 'rst' button!");
     Serial.println("重置!");
@@ -237,9 +226,9 @@ void blink() {
 
 
 //加载部分
-void load(){ 
- WiFi.softAP("wif_link_tool", "00000000", 3, 1);
- //attachInterrupt(digitalPinToInterrupt(rstb), blink, FALLING);
+bool load() {
+  //WiFi.softAP("wif_link_tool", "00000000", 3, 1);
+  //attachInterrupt(digitalPinToInterrupt(rstb), blink, FALLING);
   Serial.println("");
   EEPROM.begin(4096);
   SPIFFS.begin();
@@ -247,12 +236,12 @@ void load(){
   pinMode(stateled, OUTPUT);
   WiFi_State = EEPROM.read(WiFi_State_Addr);
   delay(300);
-  if (WiFi_State == "1")  
+  if (WiFi_State == "1")
   {
     WiFi.mode(WIFI_STA);
     Serial.println("找到配置!");
     Serial.print("链接网络");
-      delay(500);
+    delay(500);
     unsigned millis_time = millis();
     while ((WiFi.status() != WL_CONNECTED) && (millis() - millis_time < 5000))
     {
@@ -260,10 +249,6 @@ void load(){
       ESP.wdtFeed();//喂狗
       Serial.print(".");
     }
-    if (wxscan){
-      if (MDNS.begin(Hostname)) { Serial.println("mDNS以启动"); }
-      MDNS.addService("http", "tcp", 80);
-                }
 
     Serial.println("");
     if (WiFi.status() == WL_CONNECTED)
@@ -271,21 +256,19 @@ void load(){
       Serial.print("IP 地址: ");
       Serial.println(WiFi.localIP());
 
-      Serial.print("http://");
-      Serial.println(Hostname);
-      digitalWrite(stateled, HIGH);
     }
     else
     {
       Serial.println("链接失败!");
       Serial.println("请尝试重置系统!");
-      digitalWrite(stateled, LOW);
-      delay(5000);
+      return false;
     }
   }
-  else if (WiFi_State == "0")   
+  else if (WiFi_State == "0")
   {
-   
+    Serial.print("http://");
+    Serial.println(Hostname);
+    digitalWrite(stateled, HIGH);
     digitalWrite(stateled, LOW);
     WiFi.disconnect(true);
     Serial.println("");
@@ -295,6 +278,17 @@ void load(){
     Serial.println(url);
     WiFi.mode(WIFI_AP_STA);
     WiFi.softAP(AP_name);
+    Serial.println("启动http服务");
+    webServer.on("/", wwwroot);
+    webServer.on("/wificonfig", wifiConfig);
+    webServer.on("/wifiscan", wifiScan);
+    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+    dnsServer.start(DNS_PORT, "*", apIP);
+    webServer.onNotFound([]() {
+      webServer.send(200, "text/html", responseHTML);
+    });
+    webServer.begin();
+    Serial.println("启动完成");
   }
   else
   {
@@ -302,27 +296,8 @@ void load(){
     EEPROM.write(WiFi_State_Addr, 0);
     EEPROM.commit();
     delay(300);
-   
-    Serial.println("请重置系统！");
-    while (1) {
-      digitalWrite(stateled, LOW);
-      delay(250);
-      digitalWrite(stateled, HIGH);
-      delay(250);
-    }
+    ESP.restart();
   }
 
-
-
-  Serial.println("启动http服务");
-  webServer.on("/", wwwroot);
-  webServer.on("/wificonfig", wifiConfig);
-  webServer.on("/wifiscan", wifiScan);
-  webServer.on("/opera", opera);
-  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  dnsServer.start(DNS_PORT, "*", apIP);
-  webServer.onNotFound([]() {
-      webServer.send(200, "text/html", responseHTML);
-    });
-    webServer.begin();
-  }
+  return true;
+}

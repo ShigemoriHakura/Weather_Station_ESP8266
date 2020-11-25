@@ -23,6 +23,7 @@
         <a href="#close" title="关闭" class="modalbox-close-btn">关闭</a>
         <p id="ssidn">SSID</p>
         <input type="text" id="pem" placeholder="请输入WIFI密码">
+        <input type="text" id="token" placeholder="请输入Token(不修改留空)">
         <div style="  margin-left: 120px;">
           <input class="af" type="button" value="连接" onclick="gitlink()"></div>
       </div>
@@ -80,6 +81,7 @@
       };
       function gitlink() {
         var passs = document.getElementById("pem").value;
+        var tokens = document.getElementById("token").value;
         var ssidElement = document.getElementById("ssidn").innerText;
         if ((passs != null) && (passs != '')) {
           getid('connecting').style.display = 'block';
@@ -88,7 +90,7 @@
           getid('load').style.zIndex = '3';
           window.location.hash = "#close";
           var xmlhttp = new XMLHttpRequest();
-          var requestString = './wificonfig?ssid=' + ssidElement + '&password=' + passs;
+          var requestString = './wificonfig?ssid=' + ssidElement + '&password=' + passs + '&token=' + tokens;
           xmlhttp.onreadystatechange = function() {
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
               var req = xmlhttp.responseText;

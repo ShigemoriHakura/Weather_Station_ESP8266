@@ -875,19 +875,19 @@ void Duck_EPD::EPD_WriteDispRam_Old(unsigned int XSize, unsigned int YSize, unsi
 void Duck_EPD::EPD_SetRamArea(uint16_t Xstart, uint16_t Xend,
                               unsigned char Ystart, unsigned char Ystart1, unsigned char Yend, unsigned char Yend1)
 {
-    unsigned char RamAreaX[3];	// X start and end
-    unsigned char RamAreaY[5]; 	// Y start and end
-    RamAreaX[0] = 0x44;	// command
-    RamAreaX[1] = Xstart / 8;
-    RamAreaX[2] = Xend / 8;
-    RamAreaY[0] = 0x45;	// command
-    RamAreaY[1] = Ystart;
-    RamAreaY[2] = Ystart1;
-    RamAreaY[3] = Yend;
-    RamAreaY[4] = Yend1;
-    EPD_Write(RamAreaX, sizeof(RamAreaX));
-    EPD_Write(RamAreaY, sizeof(RamAreaY));
-    //Serial.printf("set ram area%d %d %d %d %d %d %d %d %d\n",RamAreaX[0],RamAreaX[1],RamAreaX[2],RamAreaY[0],RamAreaY[1],RamAreaY[2],RamAreaY[3],RamAreaY[4]);
+  unsigned char RamAreaX[3];	// X start and end
+  unsigned char RamAreaY[5]; 	// Y start and end
+  RamAreaX[0] = 0x44;	// command
+  RamAreaX[1] = Xstart / 8;
+  RamAreaX[2] = Xend / 8;
+  RamAreaY[0] = 0x45;	// command
+  RamAreaY[1] = Ystart;
+  RamAreaY[2] = Ystart1;
+  RamAreaY[3] = Yend;
+  RamAreaY[4] = Yend1;
+  EPD_Write(RamAreaX, sizeof(RamAreaX));
+  EPD_Write(RamAreaY, sizeof(RamAreaY));
+  //Serial.printf("set ram area%d %d %d %d %d %d %d %d %d\n",RamAreaX[0],RamAreaX[1],RamAreaX[2],RamAreaY[0],RamAreaY[1],RamAreaY[2],RamAreaY[3],RamAreaY[4]);
 }
 
 void Duck_EPD::EPD_SetRamPointer(uint16_t addrX, unsigned char addrY, unsigned char addrY1)
@@ -959,7 +959,7 @@ void Duck_EPD::EPD_Init(void)
   EPD_WriteData(0xc7);    //c5forgraymode//
 }
 void Duck_EPD::EPD_Set_Contrast(byte vcom)
-{ 
+{
   EPD_WriteCMD(0x2C);       //
   EPD_WriteData(vcom);    //fff
 }
